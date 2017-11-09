@@ -16,4 +16,4 @@ Com mais de um código
 
 &nbsp;
 
-![DFU MODE](https://image.ibb.co/ia4pCb/Captura_de_tela_de_2017_11_09_16_44_49.png)
+![DFU MODE](https://image.ibb.co/jdh9Cb/Captura_de_tela_de_2017_11_09_16_56_33.png)
