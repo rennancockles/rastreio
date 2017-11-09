@@ -6,6 +6,7 @@ import requests
 import argparse
 import re
 
+R = '\033[0;31m' # red
 G = '\033[0;32m' # green
 Y = '\033[1;33m' # yellow
 C = '\033[0;36m' # cyan
@@ -20,18 +21,6 @@ def escape(strarr):
 def rastreio(obj):
     s = requests.Session()
 
-    s.cookies.update({
-        'CFID': '396460849',
-        'CFTOKEN': 'a2aceeb99fe3ed48-469A6058-E5FC-77CF-8162B338B5DDB895',
-        'JSESSIONID': 'E45CECDF607B77507CF878FF51975AA4.cfusion02',
-        'CFGLOBALS': "urltoken=CFID#=396460849&CFTOKEN#=a2aceeb99fe3ed48-469A6058-E5FC-77CF-8162B338B5DDB895&jsessionid#=E45CECDF607B77507CF878FF51975AA4.cfusion02#lastvisit={ts '2017-11-09 10:02:33'}#hitcount=3#timecreated={ts '2017-11-09 10:02:33'}#cftoken=a2aceeb99fe3ed48-469A6058-E5FC-77CF-8162B338B5DDB895#cfid=396460849#",
-        'ssvbr0327_www2sro': 'sac2842SRO',
-        'sitecorreioscookie-?EXTERNO?pool_site_institucional_80': 'AIBOKIMA',
-        'ssvbr0327_www2': 'sac2842',
-        '_ga': 'GA1.3.285086236.1510228955',
-        '_gid': 'GA1.3.887097808.1510228955',
-        '_gat_gtag_UA_564464_1': '1'
-    })
     obj_post = {
         'objetos': obj,
         'btnPesq': '+Buscar'
@@ -45,7 +34,6 @@ def rastreio(obj):
         'Referer': 'http://www2.correios.com.br/sistemas/rastreamento/default.cfm',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': '37',
-        'Cookie': 'CFID=396460849; CFTOKEN=a2aceeb99fe3ed48-469A6058-E5FC-77CF-8162B338B5DDB895; JSESSIONID=E45CECDF607B77507CF878FF51975AA4.cfusion02; CFGLOBALS=urltoken%3DCFID%23%3D396460849%26CFTOKEN%23%3Da2aceeb99fe3ed48%2D469A6058%2DE5FC%2D77CF%2D8162B338B5DDB895%26jsessionid%23%3DE45CECDF607B77507CF878FF51975AA4%2Ecfusion02%23lastvisit%3D%7Bts%20%272017%2D11%2D09%2010%3A02%3A33%27%7D%23hitcount%3D3%23timecreated%3D%7Bts%20%272017%2D11%2D09%2010%3A02%3A33%27%7D%23cftoken%3Da2aceeb99fe3ed48%2D469A6058%2DE5FC%2D77CF%2D8162B338B5DDB895%23cfid%3D396460849%23; CFGLOBALS=urltoken%3DCFID%23%3D396460849%26CFTOKEN%23%3Da2aceeb99fe3ed48%2D469A6058%2DE5FC%2D77CF%2D8162B338B5DDB895%26jsessionid%23%3DE45CECDF607B77507CF878FF51975AA4%2Ecfusion02%23lastvisit%3D%7Bts%20%272017%2D11%2D09%2010%3A02%3A33%27%7D%23hitcount%3D3%23timecreated%3D%7Bts%20%272017%2D11%2D09%2010%3A02%3A33%27%7D%23cftoken%3Da2aceeb99fe3ed48%2D469A6058%2DE5FC%2D77CF%2D8162B338B5DDB895%23cfid%3D396460849%23; ssvbr0327_www2sro=sac2842SRO; sitecorreioscookie-%3FEXTERNO%3Fpool_site_institucional_80=AIBOKIMA; ssvbr0327_www2=sac2842; _ga=GA1.3.285086236.1510228955; _gid=GA1.3.887097808.1510228955; _gat_gtag_UA_564464_1=1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1'
     })
@@ -53,24 +41,24 @@ def rastreio(obj):
     r.encoding = 'ISO-8859-1'
 
     if r.status_code == 200:
-        finder = r.text.find('listEvent')
-        if finder != -1:
-            tree = html.fromstring(r.text.encode('latin1'))
-            trs = tree.xpath('//table[contains(@class,"listEvent")]/tr')
+        if r.text.find('listEvent') == -1:
+            print Y+'['+R+'#'+Y+'] Erro na requisição'
+            return None
 
-            for tr in trs:
-                tds = tr.xpath('./td')
+        tree = html.fromstring(r.text.encode('latin1'))
+        trs = tree.xpath('//table[contains(@class,"listEvent")]/tr')
 
-                data = escape(tds[0].xpath('./text() | ./label/text()'))
-                text = escape(tds[1].xpath('./text()'))
-                status = tds[1].xpath('./strong/text()')[0]
+        for tr in trs:
+            tds = tr.xpath('./td')
 
-                print Y + data
-                print C + status
-                print D + text
-                print P + '--------------------------------------------------' + D
+            data = escape(tds[0].xpath('./text() | ./label/text()'))
+            text = escape(tds[1].xpath('./text()'))
+            status = tds[1].xpath('./strong/text()')[0]
 
-            return r.text.encode('latin1')
+            print Y + data
+            print C + status
+            print D + text
+            print P + '--------------------------------------------------' + D
 
 def header(cod):
     print G+'''
