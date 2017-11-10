@@ -20,6 +20,21 @@ Obtendo códigos de um arquivo (um código por linha)
 
 `rastreio -f caminho/para/arquivo`
 
+
+Obtendo códigos de um arquivo e removendo os códigos dos objetos que já foram entregues
+
+`rastreio -f caminho/para/arquivo --auto-remove`
+
+
+Exportando o resultado para um arquivo texto comum
+
+`rastreio -c PO938188265BR -o saida`
+
+
+Exportando o resultado para um arquivo html
+
+`rastreio -c PO938188265BR -o saida.html`
+
 &nbsp;
 
-![DFU MODE](https://image.ibb.co/jdh9Cb/Captura_de_tela_de_2017_11_09_16_56_33.png)
+![DFU MODE](https://image.ibb.co/dQc03G/rastr.jpg)
