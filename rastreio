@@ -31,6 +31,7 @@ def parseArgs():
 
     parser.add_argument("-c", metavar="<codigo1[,codigo2,codigo3],...>", type=str, help="códigos para rastreio")
     parser.add_argument("-f", metavar="caminho", type=str, help="caminho do arquivo com os códigos")
+    parser.add_argument("-o", metavar="arquivo", type=str, help="arquivo de saida dos resultados")
     parser.add_argument("-r", "--auto-remove", action="store_true", help="remove do arquivo objetos já entregues (apenas se usado com -f)")
 
     args = parser.parse_args()
@@ -54,14 +55,32 @@ def escape(strarr):
     return text
 
 
-def printObj(obj):
-    header(obj['cod'])
+def outputObjs(objs, output):
+    if output:
+        cp = os.getcwd()
+        full_path = os.path.join(cp, output)
 
-    for mov in obj['movimentacoes']:
-        print(YY + mov['data'])
-        print(check(mov['title']) + C + mov['title'])
-        print(D + mov['text'])
-        print(P + '-'*50 + D)
+        print('Escrevendo no arquivo %s' % (full_path,))
+
+        with open(full_path, 'w') as file:
+            for obj in objs:
+                file.write(header(obj['cod'], False) + os.linesep)
+
+                for mov in obj['movimentacoes']:
+                    file.write(mov['data'] + os.linesep)
+                    file.write('=> '+mov['title'].encode('utf-8', 'ignore') + os.linesep)
+                    file.write(mov['text'] + os.linesep)
+                    file.write('-'*50 + os.linesep)
+
+    else:
+        for obj in objs:
+            print(header(obj['cod']))
+
+            for mov in obj['movimentacoes']:
+                print(YY + mov['data'])
+                print(check(mov['title']) + C + mov['title'])
+                print(D + mov['text'])
+                print(P + '-'*50 + D)
 
 
 def extractFromFile(path):
@@ -79,12 +98,19 @@ def writeInFile(path, objs):
         [file.write(obj['cod'] + os.linesep) for obj in objs if not isEntregue(obj)]
 
 
-def header(cod):
-    print(G+'''
-        ###################
-        #  %s%s%s  #
-        ###################
-    ''' % (D, cod, G))
+def header(cod, color=True):
+    if color:
+        return G+'''
+            ###################
+            #  %s%s%s  #
+            ###################
+        ''' % (D, cod, G)
+    else:
+        return '''
+            ###################
+            #  %s  #
+            ###################
+        ''' % (cod,)
 
 
 def isCod(cod):
@@ -173,8 +199,7 @@ if __name__ == '__main__':
     if len(codigos) >= 1:
         objs = [{'cod': cod, 'movimentacoes': rastreio(cod)} for cod in codigos]
 
-        for obj in objs:
-            printObj(obj)
+        outputObjs(objs, args.o)
 
         if auto_remove and args.f:
             writeInFile(args.f, objs)
