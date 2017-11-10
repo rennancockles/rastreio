@@ -6,19 +6,20 @@ import requests
 import argparse
 import re
 import os
+import sys
 
-GR = '\033[0;30m' # gray
-RR = '\033[1;31m' # red bold
-R = '\033[0;31m' # red
-GG = '\033[1;32m' # green bold
-G = '\033[0;32m' # green
-YY = '\033[1;33m' # yellow bold
-Y = '\033[0;33m' # yellow
-BB = '\033[1;34m' # blue bold
-B = '\033[0;34m' # blue
-P = '\033[1;35m' # purple
-C = '\033[0;36m' # cyan
-D = '\033[0;0m'  # default
+GR = '\033[0;30m'  # gray
+RR = '\033[1;31m'  # red bold
+R = '\033[0;31m'  # red
+GG = '\033[1;32m'  # green bold
+G = '\033[0;32m'  # green
+YY = '\033[1;33m'  # yellow bold
+Y = '\033[0;33m'  # yellow
+BB = '\033[1;34m'  # blue bold
+B = '\033[0;34m'  # blue
+P = '\033[1;35m'  # purple
+C = '\033[0;36m'  # cyan
+D = '\033[0;0m'   # default
 
 
 def parseArgs():
@@ -41,9 +42,15 @@ def parseArgs():
 
 
 def escape(strarr):
-    text = ' '.join(strarr).encode('latin1')
-    text = text.replace('\r', ' ').replace('\t', ' ').replace('\xa0', ' ').strip()
-    return re.sub(' +', ' ', text)
+    text = ' '.join(strarr)
+
+    if sys.version_info.major == 2:
+        text = text.encode('utf-8', 'ignore')
+
+    text = text.replace('\r', ' ').replace('\t', ' ').strip()
+    text = re.sub(' +', ' ', text)
+
+    return text
 
 
 def extractFromFile(path):
@@ -54,11 +61,11 @@ def extractFromFile(path):
 
 
 def header(cod):
-    print G+'''
+    print(G+'''
         ###################
         #  %s%s%s  #
         ###################
-    ''' % (D, cod, G)
+    ''' % (D, cod, G))
 
 
 def isCod(cod):
@@ -106,7 +113,7 @@ def rastreio(obj):
 
     if r.status_code == 200:
         if r.text.find('listEvent') == -1:
-            print YY+'['+R+'#'+YY+'] Erro na requisição'
+            print(YY+'['+R+'#'+YY+'] Erro na requisição')
             return None
 
         tree = html.fromstring(r.text.encode('latin1'))
@@ -119,10 +126,10 @@ def rastreio(obj):
             text = escape(tds[1].xpath('./text()'))
             status = tds[1].xpath('./strong/text()')[0]
 
-            print YY + data
-            print check(status) + C + status
-            print D + text
-            print P + '--------------------------------------------------' + D
+            print(YY + data)
+            print(check(status) + C + status)
+            print(D + text)
+            print(P + '--------------------------------------------------' + D)
 
 
 if __name__ == '__main__':
