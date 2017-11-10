@@ -29,8 +29,9 @@ def parseArgs():
         description='Script para rastrear pacotes dos correios'
     )
 
-    parser.add_argument("-c", metavar="<codigo1[,codigo2,codigo3],...>", type=str, help="codigos para rastreio")
-    parser.add_argument("-f", metavar="caminho", type=str, help="caminho do arquivo com os codigos")
+    parser.add_argument("-c", metavar="<codigo1[,codigo2,codigo3],...>", type=str, help="códigos para rastreio")
+    parser.add_argument("-f", metavar="caminho", type=str, help="caminho do arquivo com os códigos")
+    parser.add_argument("-r", "--auto-remove", action="store_true", help="remove do arquivo objetos já entregues (apenas se usado com -f)")
 
     args = parser.parse_args()
 
@@ -53,11 +54,29 @@ def escape(strarr):
     return text
 
 
+def printObj(obj):
+    header(obj['cod'])
+
+    for mov in obj['movimentacoes']:
+        print(YY + mov['data'])
+        print(check(mov['title']) + C + mov['title'])
+        print(D + mov['text'])
+        print(P + '-'*50 + D)
+
+
 def extractFromFile(path):
     cp = os.getcwd()
     full_path = os.path.join(cp, path)
 
     return [line.rstrip() for line in open(full_path) if isCod(line.rstrip())]
+
+
+def writeInFile(path, objs):
+    cp = os.getcwd()
+    full_path = os.path.join(cp, path)
+
+    with open(full_path, 'w') as file:
+        [file.write(obj['cod'] + os.linesep) for obj in objs if not isEntregue(obj)]
 
 
 def header(cod):
@@ -74,6 +93,11 @@ def isCod(cod):
     return False
 
 
+def isEntregue(obj):
+    titles = [mov['title'] for mov in obj['movimentacoes']]
+    return True in ['entregue' in title for title in titles]
+
+
 def check(status):
     if 'postado' in status:
         color = RR
@@ -88,6 +112,7 @@ def check(status):
 
 
 def rastreio(obj):
+    movimentacoes = []
     s = requests.Session()
 
     obj_post = {
@@ -124,16 +149,16 @@ def rastreio(obj):
 
             data = escape(tds[0].xpath('./text() | ./label/text()'))
             text = escape(tds[1].xpath('./text()'))
-            status = tds[1].xpath('./strong/text()')[0]
+            title = tds[1].xpath('./strong/text()')[0]
 
-            print(YY + data)
-            print(check(status) + C + status)
-            print(D + text)
-            print(P + '--------------------------------------------------' + D)
+            movimentacoes.append({'data': data, 'title': title, 'text': text})
+
+    return movimentacoes
 
 
 if __name__ == '__main__':
     args = parseArgs()
+    auto_remove = args.auto_remove
     codigos = []
 
     if args.f:
@@ -146,6 +171,10 @@ if __name__ == '__main__':
     codigos = list(set(codigos))
 
     if len(codigos) >= 1:
-        for cod in codigos:
-            header(cod)
-            rastreio(cod)
+        objs = [{'cod': cod, 'movimentacoes': rastreio(cod)} for cod in codigos]
+
+        for obj in objs:
+            printObj(obj)
+
+        if auto_remove and args.f:
+            writeInFile(args.f, objs)
