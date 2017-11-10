@@ -62,15 +62,18 @@ def outputObjs(objs, output):
 
         print('Escrevendo no arquivo %s' % (full_path,))
 
-        with open(full_path, 'w') as file:
-            for obj in objs:
-                file.write(header(obj['cod'], False) + os.linesep)
+        if full_path[-5:] == '.html':
+            writeHtml(objs, full_path)
+        else:
+            with open(full_path, 'w') as file:
+                for obj in objs:
+                    file.write(header(obj['cod'], False) + os.linesep)
 
-                for mov in obj['movimentacoes']:
-                    file.write(mov['data'] + os.linesep)
-                    file.write('=> '+mov['title'].encode('utf-8', 'ignore') + os.linesep)
-                    file.write(mov['text'] + os.linesep)
-                    file.write('-'*50 + os.linesep)
+                    for mov in obj['movimentacoes']:
+                        file.write(mov['data'] + os.linesep)
+                        file.write('=> '+mov['title'].encode('utf-8', 'ignore') + os.linesep)
+                        file.write(mov['text'] + os.linesep)
+                        file.write('-'*50 + os.linesep)
 
     else:
         for obj in objs:
@@ -81,6 +84,90 @@ def outputObjs(objs, output):
                 print(check(mov['title']) + C + mov['title'])
                 print(D + mov['text'])
                 print(P + '-'*50 + D)
+
+
+def writeHtml(objs, full_path):
+    HTML_STR = '''
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+      <title>Rastreamento de Objetos</title>
+      <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+      <meta charset="utf-8">
+      <meta name="description" content="Rastreamento de Objetos dos Correios">
+      <meta name="keywords" content="rastreamento,correios,websro,status,pedido atrasado,link rastreamento correios">
+      <meta name="author" content="Rennan Cockles">
+      <style type="text/css">
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 5px;
+            padding: 10px;
+            width: 80%;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        .true {
+            background-color: #037208;
+            color: white;
+        }
+        
+      </style>
+    </head>
+
+    <body>
+        <center>
+        <br>
+        <div class="container">
+    '''
+
+    for obj in objs:
+        body = '''
+            <div>
+                <h2>{}</h2>
+                </br>
+                <table class="table table-bordered {}">
+                    <thead>
+                        <tr>
+                            <th>Data / Hora</th>
+                            <th colspan="3">Status / Localidade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+        '''.format(obj['cod'], str(isEntregue(obj)).lower())
+
+        for mov in obj['movimentacoes']:
+            body += '''
+            <tr>
+                <td rowspan="2">{}</td>
+                <td colspan="2"><strong>{}</strong></td>
+            </tr>
+            <tr>  
+                <td colspan="2">{}</td>
+            </tr>
+
+            '''.format(mov['data'], mov['title'].encode('utf-8', 'ignore'), mov['text'])
+
+        body += '''
+                </tbody>
+            </table>
+        </div>
+        '''
+
+        HTML_STR += body
+
+    HTML_STR += '''
+        </div>
+    </body>
+    </html>
+    '''
+
+    with open(full_path, 'w') as file:
+        file.write(HTML_STR)
 
 
 def extractFromFile(path):
