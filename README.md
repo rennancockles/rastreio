@@ -1,4 +1,5 @@
 # Rastreio
+
 Script em python para rastrear objetos dos correios
 
 &nbsp;
@@ -7,12 +8,17 @@ Script em python para rastrear objetos dos correios
 
 Com um código
 
-`rastreio PO938188265BR`
+`rastreio -c PO938188265BR`
 
 
 Com mais de um código
 
-`rastreio PO938188265BR,PO919443331BR`
+`rastreio -c PO938188265BR,PO919443331BR`
+
+
+Obtendo códigos de um arquivo (um código por linha)
+
+`rastreio -f caminho/para/arquivo`
 
 &nbsp;
 

@@ -5,6 +5,7 @@ from lxml import html
 import requests
 import argparse
 import re
+import os
 
 GR = '\033[0;30m' # gray
 RR = '\033[1;31m' # red bold
@@ -19,17 +20,52 @@ P = '\033[1;35m' # purple
 C = '\033[0;36m' # cyan
 D = '\033[0;0m'  # default
 
+
+def parseArgs():
+    parser = argparse.ArgumentParser(
+        prog='rastreio',
+        usage='%(prog)s [OPTIONS]',
+        description='Script para rastrear pacotes dos correios'
+    )
+
+    parser.add_argument("-c", metavar="<codigo1[,codigo2,codigo3],...>", type=str, help="codigos para rastreio")
+    parser.add_argument("-f", metavar="caminho", type=str, help="caminho do arquivo com os codigos")
+
+    args = parser.parse_args()
+
+    if args.c is None and args.f is None:
+        parser.print_help()
+        exit(1)
+
+    return args
+
+
 def escape(strarr):
     text = ' '.join(strarr).encode('latin1')
     text = text.replace('\r', ' ').replace('\t', ' ').replace('\xa0', ' ').strip()
     return re.sub(' +', ' ', text)
+
+
+def extractFromFile(path):
+    cp = os.getcwd()
+    full_path = os.path.join(cp, path)
+
+    return [line.rstrip() for line in open(full_path) if isCod(line.rstrip())]
+
 
 def header(cod):
     print G+'''
         ###################
         #  %s%s%s  #
         ###################
-    ''' % (D,cod,G)
+    ''' % (D, cod, G)
+
+
+def isCod(cod):
+    if re.match('^[a-zA-Z]{2}[0-9]{9}[a-zA-Z]{2}$', cod):
+        return True
+    return False
+
 
 def check(status):
     if 'postado' in status:
@@ -42,6 +78,7 @@ def check(status):
         color = BB
 
     return color + '=> '
+
 
 def rastreio(obj):
     s = requests.Session()
@@ -87,20 +124,21 @@ def rastreio(obj):
             print D + text
             print P + '--------------------------------------------------' + D
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        prog='rastreio',
-        usage='%(prog)s <codigo[,codigo2,codigo3]>',
-        description='Script para rastrear pacotes dos correios'
-    )
 
-    parser.add_argument("c", metavar="codigo", type=str, help="codigo do rastreio")
-    args = parser.parse_args()
-    codigos = [cod for cod in args.c.split(',') if len(cod) == 13]
+if __name__ == '__main__':
+    args = parseArgs()
+    codigos = []
+
+    if args.f:
+        codigos += extractFromFile(args.f)
+
+    if args.c:
+        codigos += [cod for cod in args.c.split(',') if isCod(cod)]
+
+    # remove duplicatas
+    codigos = list(set(codigos))
 
     if len(codigos) >= 1:
         for cod in codigos:
             header(cod)
             rastreio(cod)
-    else:
-        parser.print_help()
