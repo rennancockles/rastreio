@@ -246,7 +246,7 @@ def rastreio(obj):
         'Upgrade-Insecure-Requests': '1'
     })
 
-    r = s.post('http://www2.correios.com.br/sistemas/rastreamento/resultado.cfm?', data=obj_post, allow_redirects=True)
+    r = s.post('https://www2.correios.com.br/sistemas/rastreamento/resultado.cfm?', data=obj_post, allow_redirects=True)
     r.encoding = 'ISO-8859-1'
 
     if r.status_code == 200:
